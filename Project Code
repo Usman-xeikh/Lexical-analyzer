@@ -1,0 +1,420 @@
+/**
+ * =============================================================
+ *  LEXICAL ANALYZER  (C++ Version Full Featured)
+ *  Minhaj University Lahore  Compiler Construction
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <set>
+#include <map>
+#include <tuple>
+#include <algorithm>
+#include <iomanip>
+#include <stdexcept>
+
+// ======================== TOKEN TYPE CONSTANTS ============================
+
+const std::string TT_KEYWORD    = "KEYWORD";
+const std::string TT_IDENTIFIER = "IDENTIFIER";
+const std::string TT_INTEGER    = "INTEGER";
+const std::string TT_FLOAT      = "FLOAT";
+const std::string TT_STRING     = "STRING LITERAL";
+const std::string TT_COMMENT    = "COMMENT";
+const std::string TT_OPERATOR   = "OPERATOR";
+const std::string TT_SEPARATOR  = "SEPARATOR";
+const std::string TT_DELIMITER  = "DELIMITER";
+const std::string TT_INVALID    = "INVALID TOKEN";
+
+// ======================== PYTHON KEYWORD SET =============================
+
+const std::set<std::string> KEYWORDS = {
+    "False", "None",   "True",     "and",      "as",      "assert",
+    "async", "await",  "break",    "class",    "continue","def",
+    "del",   "elif",   "else",     "except",   "finally", "for",
+    "from",  "global", "if",       "import",   "in",      "is",
+    "lambda","nonlocal","not",     "or",       "pass",    "raise",
+    "return","try",    "while",    "with",     "yield"
+};
+
+// ======================== OPERATOR TABLE (longest-match first) ===========
+
+const std::vector<std::string> OPERATORS = {
+    "//=", "**=", ">>=", "<<=",
+    "+=",  "-=",  "*=",  "/=",  "%=",
+    "//",  "**",  ">>",  "<<",  "->",
+    "==",  "!=",  "<=",  ">=",
+    "+",   "-",   "*",   "/",   "%",
+    "&",   "|",   "^",   "~",
+    "<",   ">",   "=",   "@"
+};
+
+// ======================== SEPARATORS & DELIMITERS ========================
+
+const std::set<char> SEPARATORS = { ',', ';' };
+const std::set<char> DELIMITERS = { '(', ')', '[', ']', '{', '}', ':', '.', '\\' };
+
+// ======================== DISPLAY HELPERS ================================
+
+void printDivider(char ch = '-', int width = 76) {
+    std::cout << "  " << std::string(width, ch) << "\n";
+}
+
+std::string truncate(const std::string& s, size_t maxLen = 33) {
+    if (s.length() <= maxLen) return s;
+    return s.substr(0, maxLen - 3) + "...";
+}
+
+void printRow(int no, const std::string& lexeme,
+              const std::string& ttype, int line) {
+    std::cout << "  "
+              << std::left  << std::setw(6)  << no
+              << std::setw(36) << truncate(lexeme)
+              << std::setw(22) << ttype
+              << line << "\n";
+}
+
+// ======================== LEXICAL ANALYZER CLASS =========================
+
+class LexicalAnalyzer {
+public:
+    // ------ Public token record ------
+    struct Token {
+        std::string lexeme;
+        std::string type;
+        int         line;
+    };
+
+    std::vector<Token>                    tokens;
+    std::vector<std::pair<std::string,int>> errors;
+
+    // ---- Tokenize a raw source string ----
+    void tokenize(const std::string& source) {
+        tokens.clear();
+        errors.clear();
+
+        int    line_no  = 1;
+        size_t pos      = 0;
+        const  size_t N = source.size();
+
+        while (pos < N) {
+            char ch = source[pos];
+
+            // ---- Newline ----
+            if (ch == '\n') { ++line_no; ++pos; continue; }
+
+            // ---- Whitespace ----
+            if (ch == ' ' || ch == '\t' || ch == '\r') { ++pos; continue; }
+
+            // ---- Single-line comment ----
+            if (ch == '#') {
+                size_t end = source.find('\n', pos);
+                if (end == std::string::npos) end = N;
+                addToken(source.substr(pos, end - pos), TT_COMMENT, line_no);
+                pos = end;
+                continue;
+            }
+
+            // ---- Triple-quoted strings  """..."""  or  '''...''' ----
+            if (pos + 2 < N) {
+                std::string tri = source.substr(pos, 3);
+                if (tri == "\"\"\"" || tri == "'''") {
+                    size_t end = source.find(tri, pos + 3);
+                    if (end == std::string::npos) {
+                        addError(tri, line_no);
+                        pos += 3;
+                    } else {
+                        std::string raw = source.substr(pos, end - pos + 3);
+                        line_no += static_cast<int>(
+                            std::count(raw.begin(), raw.end(), '\n'));
+                        addToken(raw, TT_STRING, line_no);
+                        pos = end + 3;
+                    }
+                    continue;
+                }
+            }
+
+            // ---- Single-quoted strings  '...'  or  "..." ----
+            if (ch == '"' || ch == '\'') {
+                auto res   = scanString(source, pos, ch);
+                std::string lex = std::get<0>(res);
+                size_t      len = std::get<1>(res);
+                bool        bad = std::get<2>(res);
+
+                if (bad) addError(lex, line_no);
+                else     addToken(lex, TT_STRING, line_no);
+                pos += len;
+                continue;
+            }
+
+            // ---- Numeric literal  (integer or float) ----
+            if (std::isdigit(static_cast<unsigned char>(ch)) ||
+                (ch == '.' && pos + 1 < N &&
+                 std::isdigit(static_cast<unsigned char>(source[pos + 1])))) {
+                auto res    = scanNumber(source, pos);
+                std::string tok = res.first;
+                size_t      len = res.second;
+
+                bool isFloat = tok.find('.') != std::string::npos ||
+                               tok.find('e') != std::string::npos ||
+                               tok.find('E') != std::string::npos;
+                addToken(tok, isFloat ? TT_FLOAT : TT_INTEGER, line_no);
+                pos += len;
+                continue;
+            }
+
+            // ---- Identifier or keyword ----
+            if (std::isalpha(static_cast<unsigned char>(ch)) || ch == '_') {
+                size_t end = pos + 1;
+                while (end < N &&
+                       (std::isalnum(static_cast<unsigned char>(source[end])) ||
+                        source[end] == '_'))
+                    ++end;
+                std::string word = source.substr(pos, end - pos);
+                addToken(word,
+                         KEYWORDS.count(word) ? TT_KEYWORD : TT_IDENTIFIER,
+                         line_no);
+                pos = end;
+                continue;
+            }
+
+            // ---- Operator (longest-match) ----
+            bool matched = false;
+            for (const auto& op : OPERATORS) {
+                if (source.substr(pos, op.size()) == op) {
+                    addToken(op, TT_OPERATOR, line_no);
+                    pos += op.size();
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) continue;
+
+            // ---- Separator ----
+            if (SEPARATORS.count(ch)) {
+                addToken(std::string(1, ch), TT_SEPARATOR, line_no);
+                ++pos;
+                continue;
+            }
+
+            // ---- Delimiter ----
+            if (DELIMITERS.count(ch)) {
+                addToken(std::string(1, ch), TT_DELIMITER, line_no);
+                ++pos;
+                continue;
+            }
+
+            // ---- Unknown / invalid ----
+            addError(std::string(1, ch), line_no);
+            ++pos;
+        }
+    }
+
+    // ---- Tokenize from file path ----
+    void tokenizeFile(const std::string& filepath) {
+        std::ifstream file(filepath);
+        if (!file.is_open())
+            throw std::runtime_error("Cannot open file: " + filepath);
+
+        std::ostringstream buf;
+        buf << file.rdbuf();
+        std::string src = buf.str();
+
+        std::cout << "\n  [OK] Loaded: " << filepath
+                  << "  (" << src.size() << " chars)\n";
+        tokenize(src);
+    }
+
+    // ---- Pretty-print the full token table ----
+    void printTokenTable() const {
+        std::cout << "\n";
+        printDivider('=');
+        std::cout << "  TOKEN TABLE\n";
+        printDivider('=');
+        std::cout << "  " << std::left
+                  << std::setw(6)  << "No."
+                  << std::setw(36) << "Token / Lexeme"
+                  << std::setw(22) << "Token Type"
+                  << "Line\n";
+        printDivider();
+
+        int idx = 1;
+        for (const auto& tok : tokens) {
+            printRow(idx++, tok.lexeme, tok.type, tok.line);
+        }
+
+        printDivider();
+        std::cout << "\n  Total tokens : " << tokens.size() << "\n";
+
+        // ---- Per-type summary ----
+        std::map<std::string, int> summary;
+        for (const auto& tok : tokens)
+            summary[tok.type]++;
+
+        std::cout << "\n  Token-type summary:\n";
+        printDivider('-', 38);
+        for (const auto& kv : summary) {
+            std::cout << "  " << std::left << std::setw(26)
+                      << kv.first << ": " << kv.second << "\n";
+        }
+        printDivider('-', 38);
+
+        // ---- Error report ----
+        if (!errors.empty()) {
+            std::cout << "\n  [!] Invalid tokens (" << errors.size() << "):\n";
+            for (const auto& e : errors)
+                std::cout << "    Line " << e.second
+                          << "  ->  '" << e.first << "'\n";
+        } else {
+            std::cout << "\n  [OK] No invalid tokens found.\n";
+        }
+
+        std::cout << "\n";
+        printDivider('=');
+        std::cout << "\n";
+    }
+
+    // ---- Export token table to CSV ----
+    void exportCSV(const std::string& outpath) const {
+        std::ofstream f(outpath);
+        if (!f) {
+            std::cerr << "[!] Cannot write to: " << outpath << "\n";
+            return;
+        }
+        f << "No,Lexeme,TokenType,Line\n";
+        int idx = 1;
+        for (const auto& tok : tokens) {
+            // Escape double-quotes inside lexeme
+            std::string lex = tok.lexeme;
+            size_t p = 0;
+            while ((p = lex.find('"', p)) != std::string::npos) {
+                lex.insert(p, "\"");
+                p += 2;
+            }
+            f << idx++ << ",\"" << lex << "\","
+              << tok.type << "," << tok.line << "\n";
+        }
+        std::cout << "  [OK] CSV exported to: " << outpath << "\n";
+    }
+
+private:
+    void addToken(const std::string& lexeme,
+                  const std::string& type, int line) {
+        tokens.push_back({ lexeme, type, line });
+    }
+
+    void addError(const std::string& lexeme, int line) {
+        errors.emplace_back(lexeme, line);
+        tokens.push_back({ lexeme, TT_INVALID, line });
+    }
+
+    // ---- Scan a single-quoted string from position start ----
+    static std::tuple<std::string, size_t, bool>
+    scanString(const std::string& src, size_t start, char quote) {
+        size_t pos = start + 1;
+        while (pos < src.size()) {
+            char c = src[pos];
+            if (c == '\\')  { pos += 2; continue; }
+            if (c == '\n')  { return std::make_tuple(src.substr(start, pos-start), pos-start, true);  }
+            if (c == quote) { return std::make_tuple(src.substr(start, pos-start+1), pos-start+1, false); }
+            ++pos;
+        }
+        return std::make_tuple(src.substr(start, pos-start), pos-start, true);
+    }
+
+    // ---- Scan a numeric literal from position start ----
+    static std::pair<std::string, size_t>
+    scanNumber(const std::string& src, size_t start) {
+        size_t pos    = start;
+        bool   hasDot = false;
+
+        while (pos < src.size()) {
+            char c = src[pos];
+            if (std::isdigit(static_cast<unsigned char>(c))) {
+                ++pos;
+            } else if (c == '.' && !hasDot) {
+                hasDot = true; ++pos;
+            } else if ((c == 'e' || c == 'E') && pos > start) {
+                ++pos;
+                if (pos < src.size() && (src[pos] == '+' || src[pos] == '-'))
+                    ++pos;
+            } else {
+                break;
+            }
+        }
+        return { src.substr(start, pos - start), pos - start };
+    }
+};
+
+// ======================== BUILT-IN SAMPLE ================================
+
+const std::string SAMPLE_CODE = R"(
+# Sample Python program for lexical analysis
+import math
+
+def calculate_area(radius):
+    """Compute the area of a circle."""
+    PI = 3.14159
+    if radius <= 0:
+        return None
+    area = PI * radius ** 2
+    return area
+
+result = calculate_area(7.5)
+print("Area =", result)
+
+x = 10
+y = 3.5
+total = x + y
+flag = True
+msg   = 'Hello, Lexer!'
+
+# Arithmetic & comparison
+z = (x * 2) - (y / 1.5) + 0.001
+valid = (z >= 5) and (flag == True) or not False
+
+# Edge cases
+bad_str = "unterminated
+unknown_char = $
+hex_val = 0xFF
+)";
+
+// =========================== MAIN ========================================
+
+int main(int argc, char* argv[]) {
+    // ---- Banner ----
+    std::cout << "\n";
+    printDivider('=');
+    std::cout << "  LEXICAL ANALYZER  â€”  C++ Full Stack Version\n";
+    std::cout << "  Minhaj University Lahore  |  Compiler Construction\n";
+    printDivider('=');
+
+    LexicalAnalyzer la;
+
+    if (argc > 1 && argv[1][0] != '-') {
+        // ---- File mode ----
+        try {
+            la.tokenizeFile(argv[1]);
+        } catch (const std::exception& ex) {
+            std::cerr << "\n  [ERROR] " << ex.what() << "\n\n";
+            return 1;
+        }
+
+        // Optional: export CSV if second arg given
+        if (argc > 2) la.exportCSV(argv[2]);
+
+    } else {
+        // ---- Demo / built-in sample ----
+        std::cout << "\n  (No file supplied â€” running built-in sample)\n";
+        la.tokenize(SAMPLE_CODE);
+    }
+
+    la.printTokenTable();
+
+    // ---- Optional: always export a CSV alongside the run ----
+    // la.exportCSV("tokens_output.csv");
+
+    return 0;
+}
