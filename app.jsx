@@ -61,3 +61,28 @@ export default function App() {
       default: return 'text-gray-300 bg-gray-500/20 border-gray-500/30';
     }
   };
+return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-fuchsia-950 font-sans text-slate-100 relative selection:bg-indigo-500/30 overflow-hidden">
+      
+      {/* Decorative blurred background shapes to enhance glass effect */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/20 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none"></div>
+
+      {/* Header */}
+      <header className="relative z-10 bg-white/5 backdrop-blur-md border-b border-white/10 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-indigo-500/80 backdrop-blur-sm border border-indigo-400/50 rounded-lg shadow-lg">
+              <Terminal className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-white drop-shadow-md">Lexical Analyzer</h1>
+              <p className="text-xs text-indigo-200 font-medium">Compiler Construction Lab</p>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center space-x-2 text-sm text-slate-300">
+            <span className="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/20 shadow-sm">UI by Atif</span>
+            <span className="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/20 shadow-sm">Engine by Talha</span>
+          </div>
+        </div>
+      </header>
