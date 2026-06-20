@@ -1,18 +1,3 @@
-std::cout << "\n";
-    printDivider('=');
-    std::cout << "  LEXICAL ANALYZER  â€”  C++ Full Stack Version\n";
-    std::cout << "  Minhaj University Lahore  |  Compiler Construction\n";
-    printDivider('=');
-
-    LexicalAnalyzer la;
-
-
-
-
-
-
-
-
 
 
 /**
