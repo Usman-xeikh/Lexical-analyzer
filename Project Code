@@ -1,24 +1,25 @@
-const std::string TT_KEYWORD    = "KEYWORD";
-const std::string TT_IDENTIFIER = "IDENTIFIER";
-const std::string TT_INTEGER    = "INTEGER";
-const std::string TT_FLOAT      = "FLOAT";
-const std::string TT_STRING     = "STRING LITERAL";
-const std::string TT_COMMENT    = "COMMENT";
-const std::string TT_OPERATOR   = "OPERATOR";
-const std::string TT_SEPARATOR  = "SEPARATOR";
-const std::string TT_DELIMITER  = "DELIMITER";
-const std::string TT_INVALID    = "INVALID TOKEN";
+          if (matched) continue;
 
-// ======================== PYTHON KEYWORD SET =============================
+            // ---- Separator ----
+            if (SEPARATORS.count(ch)) {
+                addToken(std::string(1, ch), TT_SEPARATOR, line_no);
+                ++pos;
+                continue;
+            }
 
-const std::set<std::string> KEYWORDS = {
-    "False", "None",   "True",     "and",      "as",      "assert",
-    "async", "await",  "break",    "class",    "continue","def",
-    "del",   "elif",   "else",     "except",   "finally", "for",
-    "from",  "global", "if",       "import",   "in",      "is",
-    "lambda","nonlocal","not",     "or",       "pass",    "raise",
-    "return","try",    "while",    "with",     "yield"
-};
+            // ---- Delimiter ----
+            if (DELIMITERS.count(ch)) {
+                addToken(std::string(1, ch), TT_DELIMITER, line_no);
+                ++pos;
+                continue;
+            }
+
+            // ---- Unknown / invalid ----
+            addError(std::string(1, ch), line_no);
+            ++pos;
+        }
+    }
+
 
 
 
