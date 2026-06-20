@@ -180,3 +180,40 @@ return (
               )}
             </div>
             
+<div className="flex-1 overflow-auto bg-transparent">
+              {tokens.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
+                  <div className="p-4 bg-white/5 rounded-full border border-white/10 shadow-inner">
+                    <Table2 className="w-12 h-12 text-slate-500" />
+                  </div>
+                  <p className="text-sm">Run the analyzer to generate token stream</p>
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-white/10">
+                  <thead className="bg-black/40 sticky top-0 z-10 backdrop-blur-md">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Line</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Lexeme</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Token Type</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 bg-transparent">
+                    {tokens.map((token) => (
+                      <tr key={token.id} className="hover:bg-white/10 transition-colors">
+                        <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-400 font-mono">
+                          {token.line}
+                        </td>
+                        <td className="px-6 py-3 whitespace-nowrap text-sm font-mono font-medium text-slate-200">
+                          {token.lexeme}
+                        </td>
+                        <td className="px-6 py-3 whitespace-nowrap text-sm">
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-medium border shadow-sm backdrop-blur-sm ${getTokenTypeColor(token.type)}`}>
+                            {token.type}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
