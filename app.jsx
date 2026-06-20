@@ -38,3 +38,26 @@ export default function App() {
         { id: 18, lexeme: ';', type: 'Punctuation', line: 5 },
         { id: 19, lexeme: '}', type: 'Punctuation', line: 6 },
       ];
+ setTokens(mockBackendResponse);
+      setIsAnalyzing(false);
+      setStatus('success');
+    }, 1200); // 1.2 second simulated delay
+  };
+
+  const handleClear = () => {
+    setSourceCode('');
+    setTokens([]);
+    setStatus('idle');
+  };
+
+  // Helper to color-code token types for dark glass UX
+  const getTokenTypeColor = (type) => {
+    switch (type) {
+      case 'Keyword': return 'text-purple-300 bg-purple-500/20 border-purple-500/30';
+      case 'Identifier': return 'text-blue-300 bg-blue-500/20 border-blue-500/30';
+      case 'Operator': return 'text-rose-300 bg-rose-500/20 border-rose-500/30';
+      case 'Constant': return 'text-emerald-300 bg-emerald-500/20 border-emerald-500/30';
+      case 'Punctuation': return 'text-slate-300 bg-slate-500/20 border-slate-500/30';
+      default: return 'text-gray-300 bg-gray-500/20 border-gray-500/30';
+    }
+  };
