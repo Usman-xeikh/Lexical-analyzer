@@ -14,3 +14,27 @@ export default function App() {
     setIsAnalyzing(true);
     setStatus('idle');
     setTokens([]);
+ // Simulating API delay (Connecting to C++ backend)
+    setTimeout(() => {
+      // Mock data that Talha's C++ engine would return as JSON
+      const mockBackendResponse = [
+        { id: 1, lexeme: 'int', type: 'Keyword', line: 2 },
+        { id: 2, lexeme: 'main', type: 'Identifier', line: 2 },
+        { id: 3, lexeme: '(', type: 'Punctuation', line: 2 },
+        { id: 4, lexeme: ')', type: 'Punctuation', line: 2 },
+        { id: 5, lexeme: '{', type: 'Punctuation', line: 2 },
+        { id: 6, lexeme: 'int', type: 'Keyword', line: 3 },
+        { id: 7, lexeme: 'a', type: 'Identifier', line: 3 },
+        { id: 8, lexeme: '=', type: 'Operator', line: 3 },
+        { id: 9, lexeme: '5', type: 'Constant', line: 3 },
+        { id: 10, lexeme: ';', type: 'Punctuation', line: 3 },
+        { id: 11, lexeme: 'float', type: 'Keyword', line: 4 },
+        { id: 12, lexeme: 'b', type: 'Identifier', line: 4 },
+        { id: 13, lexeme: '=', type: 'Operator', line: 4 },
+        { id: 14, lexeme: '3.14', type: 'Constant', line: 4 },
+        { id: 15, lexeme: ';', type: 'Punctuation', line: 4 },
+        { id: 16, lexeme: 'return', type: 'Keyword', line: 5 },
+        { id: 17, lexeme: '0', type: 'Constant', line: 5 },
+        { id: 18, lexeme: ';', type: 'Punctuation', line: 5 },
+        { id: 19, lexeme: '}', type: 'Punctuation', line: 6 },
+      ];
