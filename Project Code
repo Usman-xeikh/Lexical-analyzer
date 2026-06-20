@@ -1,25 +1,10 @@
-          if (matched) continue;
+std::cout << "\n";
+    printDivider('=');
+    std::cout << "  LEXICAL ANALYZER  â€”  C++ Full Stack Version\n";
+    std::cout << "  Minhaj University Lahore  |  Compiler Construction\n";
+    printDivider('=');
 
-            // ---- Separator ----
-            if (SEPARATORS.count(ch)) {
-                addToken(std::string(1, ch), TT_SEPARATOR, line_no);
-                ++pos;
-                continue;
-            }
-
-            // ---- Delimiter ----
-            if (DELIMITERS.count(ch)) {
-                addToken(std::string(1, ch), TT_DELIMITER, line_no);
-                ++pos;
-                continue;
-            }
-
-            // ---- Unknown / invalid ----
-            addError(std::string(1, ch), line_no);
-            ++pos;
-        }
-    }
-
+    LexicalAnalyzer la;
 
 
 
