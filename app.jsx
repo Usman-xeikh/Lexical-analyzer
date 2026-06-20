@@ -86,3 +86,62 @@ return (
           </div>
         </div>
       </header>
+return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-fuchsia-950 font-sans text-slate-100 relative selection:bg-indigo-500/30 overflow-hidden">
+      
+      {/* Decorative blurred background shapes to enhance glass effect */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/20 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none"></div>
+
+      {/* Header */}
+      <header className="relative z-10 bg-white/5 backdrop-blur-md border-b border-white/10 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-indigo-500/80 backdrop-blur-sm border border-indigo-400/50 rounded-lg shadow-lg">
+              <Terminal className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-white drop-shadow-md">Lexical Analyzer</h1>
+              <p className="text-xs text-indigo-200 font-medium">Compiler Construction Lab</p>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center space-x-2 text-sm text-slate-300">
+            <span className="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/20 shadow-sm">UI by Atif</span>
+            <span className="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/20 shadow-sm">Engine by Talha</span>
+          </div>
+        </div>
+      </header>
+    {/* Main Content Area */}
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Left Column: Code Editor */}
+          <div className="flex flex-col h-[700px] bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden relative group">
+            <div className="px-4 py-3 border-b border-white/10 bg-black/20 flex justify-between items-center z-10">
+              <div className="flex items-center space-x-2 text-slate-200 font-semibold">
+                <Code2 className="w-5 h-5 text-indigo-400" />
+                <span>Source Code Input</span>
+              </div>
+              <div className="flex space-x-2">
+                <button 
+                  onClick={handleClear}
+                  className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/20 rounded-md transition-all"
+                  title="Clear Editor"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing}
+                  className="flex items-center space-x-2 bg-indigo-600/80 hover:bg-indigo-500 disabled:bg-slate-600/50 backdrop-blur-md border border-indigo-400/50 text-white px-4 py-2 rounded-md font-medium transition-all shadow-lg"
+                >
+                  {isAnalyzing ? (
+                    <div className="w-4 h-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <Play className="w-4 h-4" />
+                  )}
+                  <span>{isAnalyzing ? 'Analyzing...' : 'Analyze Code'}</span>
+                </button>
+              </div>
+            </div>
+            
