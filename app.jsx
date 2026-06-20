@@ -144,4 +144,39 @@ return (
                 </button>
               </div>
             </div>
+             <div className="flex-1 relative">
+              {/* Fake line numbers background */}
+              <div className="absolute left-0 top-0 bottom-0 w-12 bg-black/20 border-r border-white/10 z-0 pointer-events-none"></div>
+              <textarea
+                value={sourceCode}
+                onChange={(e) => setSourceCode(e.target.value)}
+                className="w-full h-full p-4 pl-16 font-mono text-sm resize-none focus:outline-none focus:bg-white/5 transition-colors bg-transparent text-slate-100 placeholder-slate-500 relative z-10"
+                placeholder="Paste your C++ code here..."
+                spellCheck="false"
+              />
+            </div>
+          </div>
+
+          {/* Right Column: Output Table */}
+          <div className="flex flex-col h-[700px] bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+            <div className="px-4 py-3 border-b border-white/10 bg-black/20 flex justify-between items-center z-10">
+              <div className="flex items-center space-x-2 text-slate-200 font-semibold">
+                <Table2 className="w-5 h-5 text-emerald-400" />
+                <span>Token Stream Output</span>
+              </div>
+              
+              {/* Status Indicator */}
+              {status === 'success' && (
+                <div className="flex items-center space-x-1 text-sm text-emerald-400 font-medium bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Analysis Complete</span>
+                </div>
+              )}
+              {status === 'error' && (
+                <div className="flex items-center space-x-1 text-sm text-rose-400 font-medium bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Syntax Error</span>
+                </div>
+              )}
+            </div>
             
