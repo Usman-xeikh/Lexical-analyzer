@@ -1,3 +1,57 @@
+    // ---- Pretty-print the full token table ----
+    void printTokenTable() const {
+        std::cout << "\n";
+        printDivider('=');
+        std::cout << "  TOKEN TABLE\n";
+        printDivider('=');
+        std::cout << "  " << std::left
+                  << std::setw(6)  << "No."
+                  << std::setw(36) << "Token / Lexeme"
+                  << std::setw(22) << "Token Type"
+                  << "Line\n";
+        printDivider();
+
+        int idx = 1;
+        for (const auto& tok : tokens) {
+            printRow(idx++, tok.lexeme, tok.type, tok.line);
+        }
+
+        printDivider();
+        std::cout << "\n  Total tokens : " << tokens.size() << "\n";
+
+        // ---- Per-type summary ----
+        std::map<std::string, int> summary;
+        for (const auto& tok : tokens)
+            summary[tok.type]++;
+
+        std::cout << "\n  Token-type summary:\n";
+        printDivider('-', 38);
+        for (const auto& kv : summary) {
+            std::cout << "  " << std::left << std::setw(26)
+                      << kv.first << ": " << kv.second << "\n";
+        }
+        printDivider('-', 38);
+
+        // ---- Error report ----
+        if (!errors.empty()) {
+            std::cout << "\n  [!] Invalid tokens (" << errors.size() << "):\n";
+            for (const auto& e : errors)
+                std::cout << "    Line " << e.second
+                          << "  ->  '" << e.first << "'\n";
+        } else {
+            std::cout << "\n  [OK] No invalid tokens found.\n";
+        }
+
+        std::cout << "\n";
+        printDivider('=');
+        std::cout << "\n";
+    }
+
+
+
+
+
+
 /**
  * =============================================================
  *  LEXICAL ANALYZER  (C++ Version Full Featured)
