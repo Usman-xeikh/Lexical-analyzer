@@ -1,28 +1,4 @@
- void tokenize(const std::string& source) {
-        tokens.clear();
-        errors.clear();
 
-        int    line_no  = 1;
-        size_t pos      = 0;
-        const  size_t N = source.size();
-
-        while (pos < N) {
-            char ch = source[pos];
-
-            // ---- Newline ----
-            if (ch == '\n') { ++line_no; ++pos; continue; }
-
-            // ---- Whitespace ----
-            if (ch == ' ' || ch == '\t' || ch == '\r') { ++pos; continue; }
-
-            // ---- Single-line comment ----
-            if (ch == '#') {
-                size_t end = source.find('\n', pos);
-                if (end == std::string::npos) end = N;
-                addToken(source.substr(pos, end - pos), TT_COMMENT, line_no);
-                pos = end;
-                continue;
-            }
 
 /**
  * =============================================================
