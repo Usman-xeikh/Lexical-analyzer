@@ -1,0 +1,20 @@
+🔴 ISSUE #001 | CRITICAL BUG
+Type: Runtime Crash
+Difficulty: ⭐⭐⭐
+Assigned To: Unassigned
+
+🐛 The Problem
+The lexer crashes immediately when it encounters an empty input file. No error message, just a segmentation fault.
+
+💡 The Fix
+Add a null-check at the very beginning of the tokenize() function.
+python
+# BEFORE
+def tokenize(source):
+    return process(source)  # Boom if source is empty
+
+# AFTER
+def tokenize(source):
+    if not source or len(source.strip()) == 0:
+        return []  # Graceful empty token list
+    return process(source)
