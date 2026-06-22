@@ -1,20 +1,28 @@
-void printDivider(char ch = '-', int width = 76) {
-    std::cout << "  " << std::string(width, ch) << "\n";
-}
+ void tokenize(const std::string& source) {
+        tokens.clear();
+        errors.clear();
 
-std::string truncate(const std::string& s, size_t maxLen = 33) {
-    if (s.length() <= maxLen) return s;
-    return s.substr(0, maxLen - 3) + "...";
-}
+        int    line_no  = 1;
+        size_t pos      = 0;
+        const  size_t N = source.size();
 
-void printRow(int no, const std::string& lexeme,
-              const std::string& ttype, int line) {
-    std::cout << "  "
-              << std::left  << std::setw(6)  << no
-              << std::setw(36) << truncate(lexeme)
-              << std::setw(22) << ttype
-              << line << "\n";
-}
+        while (pos < N) {
+            char ch = source[pos];
+
+            // ---- Newline ----
+            if (ch == '\n') { ++line_no; ++pos; continue; }
+
+            // ---- Whitespace ----
+            if (ch == ' ' || ch == '\t' || ch == '\r') { ++pos; continue; }
+
+            // ---- Single-line comment ----
+            if (ch == '#') {
+                size_t end = source.find('\n', pos);
+                if (end == std::string::npos) end = N;
+                addToken(source.substr(pos, end - pos), TT_COMMENT, line_no);
+                pos = end;
+                continue;
+            }
 
 /**
  * =============================================================
