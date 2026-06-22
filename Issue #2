@@ -1,0 +1,35 @@
+issue #3: Lexer fails to handle escaped quotes inside string literals
+Labels: bug core-lexer priority: high
+Assignee: @Irfan (Bug Fixes)
+
+Description
+When the lexical analyzer encounters a string literal that contains an escaped quotation mark (e.g., \"), it prematurely terminates the string token. It reads the escaped quote as the end of the string, causing the rest of the string to be parsed as invalid syntax.
+
+Steps to Reproduce
+Pass the following code to the scanner:
+
+String message = "He said, "Hello World!" today.";
+
+2. Run the tokenization process.
+3. Check the output tokens.
+
+#### **Expected Behavior**
+The entire sequence `"He said, \"Hello World!\" today."` should be parsed as a single `STRING_LITERAL` token.
+
+#### **Actual Behavior**
+The lexer splits the string at the escaped quote and throws a syntax/unexpected character error on the remaining text:
+```text
+[TYPE: String] 
+[IDENTIFIER: message] 
+[OPERATOR: =] 
+[STRING_LITERAL: "He said, \"] 
+[IDENTIFIER: Hello] 
+[IDENTIFIER: World]
+[ERROR]: Unexpected character '!'
+
+Suggested Fix
+Update the string-matching regular expression to account for the escape character \.
+
+Current Regex: "[^"]*"
+
+Proposed Regex: \"(\\.|[^"\\])*\"
