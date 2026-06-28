@@ -297,7 +297,9 @@ public:
             f << idx++ << ",\"" << lex << "\","
               << tok.type << "," << tok.line << "\n";
         }
-        std::cout << "  [OK] CSV exported to: " << outpath << "\n";
+        std::cout << " \nCSV file exported successfully\n";
+        std::cout << " Output File : " <<outpath << "\n";
+        std::cout << " Export Completed\n";
     }
 
 private:
@@ -388,8 +390,9 @@ int main(int argc, char* argv[]) {
     // ---- Banner ----
     std::cout << "\n";
     printDivider('=');
-    std::cout << "  LEXICAL ANALYZER  â€”  C++ Full Stack Version\n";
-    std::cout << "  Minhaj University Lahore  |  Compiler Construction\n";
+    std::cout << " Lexical Analyser\n";
+    std::cout << " Compiler Construction Project\n";
+    std::cout << " Version 2.O\n";
     printDivider('=');
 
     LexicalAnalyzer la;
