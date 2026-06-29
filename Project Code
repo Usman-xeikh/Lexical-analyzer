@@ -406,5 +406,9 @@ int main(int argc, char* argv[]) {
     // ---- Optional: always export a CSV alongside the run ----
     // la.exportCSV("tokens_output.csv");
 
+    printDivider( '=' )
+    std::cout << "Thank You for using Lexical Analyzer\n";
+    printDivider( '=' );
+
     return 0;
 }
