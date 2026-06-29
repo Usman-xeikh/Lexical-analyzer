@@ -10,7 +10,12 @@ export default function App() {
   // This function simulates sending the code to Talha's C++ backend
   const handleAnalyze = () => {
     if (!sourceCode.trim()) return;
-    
+     setIsAnalyzing(true);
+    setStatus('idle');
+    setTokens([]);
+ // Simulating API delay (Connecting to C++ backend)
+    setTimeout(() => {
+      // Mock data that Talha's C++ engine would return as JSON
    
       const mockBackendResponse = [
         { id: 1, lexeme: 'int', type: 'Keyword', line: 2 },
@@ -212,17 +217,7 @@ return (
                 </table>
               )}
             </div>
-{/* Footer Stats */}
-            {tokens.length > 0 && (
-              <div className="px-4 py-3 border-t border-white/10 bg-black/20 text-xs text-slate-400 flex justify-between">
-                <span>Total Tokens: {tokens.length}</span>
-                <span>Ready for QA Testing (Tayyab) and report by irfan ali</span>
-              </div>
-            )}
-          </div>
 
-        </div>
-      </main>
     </div>
   );
 }
