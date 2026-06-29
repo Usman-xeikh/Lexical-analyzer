@@ -213,21 +213,7 @@ public:
         }
     }
 
-    // ---- Tokenize from file path ----
-    void tokenizeFile(const std::string& filepath) {
-        std::ifstream file(filepath);
-        if (!file.is_open())
-            throw std::runtime_error("Cannot open file: " + filepath);
-
-        std::ostringstream buf;
-        buf << file.rdbuf();
-        std::string src = buf.str();
-
-        std::cout << "\n  [OK] Loaded: " << filepath
-                  << "  (" << src.size() << " chars)\n";
-        tokenize(src);
-    }
-
+    
     // ---- Pretty-print the full token table ----
     void printTokenTable() const {
         std::cout << "\n";
