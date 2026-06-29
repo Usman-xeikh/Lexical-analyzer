@@ -255,7 +255,8 @@ public:
                 std::cout << "    Line " << e.second
                           << "  ->  '" << e.first << "'\n";
         } else {
-            std::cout << "\n  [OK] No invalid tokens found.\n";
+            std::cout << "\nNo Invalid Tokens Founf\n";
+            std::cout << " Lexical Analysis Successfully\n";
         }
 
         std::cout << "\n";
