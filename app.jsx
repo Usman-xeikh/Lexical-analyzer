@@ -11,12 +11,7 @@ export default function App() {
   const handleAnalyze = () => {
     if (!sourceCode.trim()) return;
     
-    setIsAnalyzing(true);
-    setStatus('idle');
-    setTokens([]);
- // Simulating API delay (Connecting to C++ backend)
-    setTimeout(() => {
-      // Mock data that Talha's C++ engine would return as JSON
+   
       const mockBackendResponse = [
         { id: 1, lexeme: 'int', type: 'Keyword', line: 2 },
         { id: 2, lexeme: 'main', type: 'Identifier', line: 2 },
