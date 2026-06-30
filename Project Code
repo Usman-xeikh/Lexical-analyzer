@@ -67,7 +67,6 @@ std::string truncate(const std::string& s, size_t maxLen = 33) {
     if (s.length() <= maxLen) return s;
     return s.substr(0, maxLen - 3) + "...";
 }
-
 void printRow(int no, const std::string& lexeme,
               const std::string& ttype, int line) {
     std::cout << "  "
