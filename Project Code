@@ -218,7 +218,7 @@ public:
     void printTokenTable() const {
         std::cout << "\n";
         printDivider('=');
-        std::cout << "  TOKEN TABLE\n";
+        std::cout << " Python TOKEN TABLE\n";
         printDivider('=');
         std::cout << "  " << std::left
                   << std::setw(6)  << "No."
