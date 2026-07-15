@@ -81,13 +81,13 @@ void printRow(int no, const std::string& lexeme,
 class LexicalAnalyzer {
 public:
     // ------ Public token record ------
-    struct Token {
-        std::string lexeme;
-        std::string type;
-        int         line;
+    struct Token Info {
+        std::string value;
+        std::string category;
+        int lineNumber;
     };
 
-    std::vector<Token>                    tokens;
+    std::vector<Token>tokens;
     std::vector<std::pair<std::string,int>> errors;
 
     // ---- Tokenize a raw source string ----
