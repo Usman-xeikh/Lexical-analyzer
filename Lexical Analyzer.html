@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>⚡ C++ Lexical Analyzer</title>
+    <style>
+        /* ---------- GLOBAL RESET & FONTS ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0b0e14;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 1300px;
+            width: 100%;
+            background: #131a22;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 0 2px #2a3a4a inset;
+            padding: 2rem 2.5rem;
+            transition: box-shadow 0.3s;
+        }
+        /* ---------- HEADER ---------- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #2a3a4a;
+            padding-bottom: 0.8rem;
+            margin-bottom: 1.8rem;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            font-weight: 500;
+            font-size: 1.8rem;
+            color: #b7e1fa;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(80, 200, 255, 0.2);
+        }
+        .header h1 span {
+            color: #f0c674;
+        }
+        .header .status {
+            color: #7ecb8e;
+            font-size: 0.9rem;
+            background: #1e2a36;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            border: 1px solid #3a4a5a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status .dot {
+            width: 10px;
+            height: 10px;
+            background: #7ecb8e;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-dot 1.2s infinite;
+        }
+        @keyframes pulse-dot {
+            0% { opacity: 0.3; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.3; transform: scale(0.9); }
+        }
+
+        /* ---------- EDITOR AREA ---------- */
+        .editor-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .code-input {
+            flex: 3;
+            min-width: 300px;
+        }
+        .code-input label {
+            display: block;
+            color: #a0b8cc;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        textarea {
+            width: 100%;
+            height: 340px;
+            background: #0e151e;
+            border: 2px solid #2a3a4a;
+            border-radius: 14px;
+            padding: 1.2rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: #d4e6f0;
+            resize: vertical;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            outline: none;
+            caret-color: #b7e1fa;
+        }
+        textarea:focus {
+            border-color: #5b8db8;
+            box-shadow: 0 0 0 4px rgba(70, 130, 200, 0.2);
+        }
+        textarea::selection {
+            background: #2a4a6a;
+        }
+
+        .controls {
+            flex: 1;
+            min-width: 180px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            justify-content: flex-end;
+        }
+        .controls button {
+            background: #1e2a36;
+            border: 2px solid #3a4a5a;
+            color: #c8dce8;
+            padding: 0.8rem 1rem;
+            border-radius: 40px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .controls button:hover {
+            background: #2a3a4a;
+            border-color: #5b8db8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+        }
+        .controls button:active {
+            transform: scale(0.97);
+        }
+        .controls button.primary {
+            background: #2d5f7a;
+            border-color: #4a8bb0;
+            color: #f0f8ff;
+        }
+        .controls button.primary:hover {
+            background: #3a7a9a;
+            box-shadow: 0 0 20px rgba(70, 150, 220, 0.3);
+        }
+        .controls button .icon {
+            font-size: 1.2rem;
+        }
+
+        /* ---------- STATS BAR ---------- */
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1.5rem 2rem;
+            background: #0e151e;
+            padding: 0.7rem 1.5rem;
+            border-radius: 40px;
+            border: 1px solid #2a3a4a;
+            margin: 1rem 0 1.2rem;
+        }
+        .stats .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9bb5cc;
+            font-size: 0.85rem;
+        }
+        .stats .stat-item .value {
+            background: #1e2a36;
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+            color: #d4e6f0;
+            font-weight: 600;
+            min-width: 2rem;
+            text-align: center;
+        }
+        .stats .stat-item .value.error {
+            background: #4a2a2a;
+            color: #f28b82;
+        }
+
+        /* ---------- TOKEN TABLE ---------- */
+        .output {
+            border-radius: 14px;
+            border: 2px solid #2a3a4a;
+            background: #0e151e;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            background: #1a2530;
+            color: #a0b8cc;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.7rem 1rem;
+            text-align: left;
+            border-bottom: 2px solid #2a3a4a;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        td {
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #1e2a36;
+            font-family: inherit;
+            color: #d4e6f0;
+        }
+        tr {
+            transition: background 0.15s;
+        }
+        tr:hover td {
+            background: #1a2530;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* token type badges */
+        .type-badge {
+            display: inline-block;
+            padding: 0.15rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            background: #1e2a36;
+            color: #b7c9d8;
+        }
+        .type-badge.keyword  { background: #2a4a6a; color: #8bc4ff; }
+        .type-badge.identifier { background: #1e3a3a; color: #8fdbaf; }
+        .type-badge.integer  { background: #3a3a2a; color: #f5c27b; }
+        .type-badge.float    { background: #3a2a3a; color: #d7a0d7; }
+        .type-badge.string   { background: #3a2a2a; color: #f5a3a3; }
+        .type-badge.comment  { background: #1a2a1a; color: #7fbf7f; }
+        .type-badge.operator { background: #2a2a3a; color: #b0b0e0; }
+        .type-badge.separator, .type-badge.delimiter { background: #1a2a2a; color: #b0c0b0; }
+        .type-badge.error    { background: #4a1a1a; color: #ff8a80; }
+
+        /* ---------- ERROR BOX ---------- */
+        .error-box {
+            background: #1a1010;
+            border-left: 6px solid #f28b82;
+            padding: 0.6rem 1.2rem;
+            margin: 0.8rem 0;
+            border-radius: 10px;
+            color: #f5baba;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            animation: slideIn 0.4s ease;
+        }
+        @keyframes slideIn {
+            0% { opacity: 0; transform: translateY(-6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .error-box strong {
+            color: #f28b82;
+        }
+
+        /* ---------- LOADING ANIMATION (for tokenize click) ---------- */
+        .scanning .header .status .dot {
+            animation: pulse-dot 0.6s infinite;
+        }
+        .scanning .controls button.primary {
+            background: #3a6a7a;
+            border-color: #6ab0d0;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .scanning .controls button.primary .icon {
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 700px) {
+            .container { padding: 1.2rem; }
+            .header h1 { font-size: 1.3rem; }
+            textarea { height: 220px; }
+            .stats { gap: 0.8rem; }
+        }
+        /* blinking cursor emulation (just for style) */
+        textarea {
+            caret-color: #b7e1fa;
+        }
+        /* subtle glow on table */
+        .output {
+            transition: border-color 0.3s;
+        }
+        .output.active {
+            border-color: #4a8bb0;
+        }
+        /* row number coloring */
+        td:first-child {
+            color: #5a7a8a;
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="app">
+    <!-- HEADER -->
+    <div class="header">
+        <h1>⚡ <span>Lexer</span> · C++ Style</h1>
+        <div class="status">
+            <span class="dot"></span>
+            <span id="statusText">ready</span>
+        </div>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="editor-area">
+        <div class="code-input">
+            <label for="codeInput">📝 Source Code</label>
+            <textarea id="codeInput" spellcheck="false">#include <iostream>
+using namespace std;
+
+int main() {
+    // A simple C++ example
+    int x = 42;
+    double pi = 3.14159;
+    string msg = "Hello, Lexer!";
+    if (x > 10) {
+        cout << msg << endl;
+    }
+    return 0;
+}</textarea>
+        </div>
+        <div class="controls">
+            <button class="primary" id="tokenizeBtn">
+                <span class="icon">▶</span> Tokenize
+            </button>
+            <button id="resetBtn">
+                <span class="icon">↺</span> Reset
+            </button>
+            <button id="clearBtn">
+                <span class="icon">✕</span> Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+        <div class="stat-item">📋 Tokens <span class="value" id="tokenCount">0</span></div>
+        <div class="stat-item">⚠️ Errors <span class="value error" id="errorCount">0</span></div>
+        <div class="stat-item">📄 Lines <span class="value" id="lineCount">0</span></div>
+    </div>
+
+    <!-- ERROR DISPLAY -->
+    <div id="errorContainer"></div>
+
+    <!-- OUTPUT TABLE -->
+    <div class="output" id="outputContainer">
+        <table>
+            <thead><tr><th>#</th><th>Lexeme</th><th>Token Type</th><th>Line</th></tr></thead>
+            <tbody id="tokenBody">
+                <tr><td colspan="4" style="text-align:center; color:#4a6a7a; padding:2rem;">⏳ Ready – press <strong>Tokenize</strong></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // =====================================================================
+    //  LEXICAL ANALYZER  (C++-style tokenization – supports C++ keywords)
+    // =====================================================================
+
+    // ----- C++ keywords (subset) -----
+    const KEYWORDS = new Set([
+        "alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand", "bitor",
+        "bool", "break", "case", "catch", "char", "char8_t", "char16_t", "char32_t",
+        "class", "compl", "concept", "const", "consteval", "constexpr", "constinit",
+        "const_cast", "continue", "co_await", "co_return", "co_yield", "decltype",
+        "default", "delete", "do", "double", "dynamic_cast", "else", "enum", "explicit",
+        "export", "extern", "false", "float", "for", "friend", "goto", "if", "inline",
+        "int", "long", "mutable", "namespace", "new", "noexcept", "not", "not_eq",
+        "nullptr", "operator", "or", "or_eq", "private", "protected", "public",
+        "register", "reinterpret_cast", "requires", "return", "short", "signed",
+        "sizeof", "static", "static_assert", "static_cast", "struct", "switch",
+        "template", "this", "thread_local", "throw", "true", "try", "typedef",
+        "typeid", "typename", "union", "unsigned", "using", "virtual", "void",
+        "volatile", "wchar_t", "while", "xor", "xor_eq"
+    ]);
+
+    const OPERATORS = [
+        "::", "->*", "->", ".*", ".", "+=", "-=", "*=", "/=", "%=", "^=", "&=", "|=",
+        "<<=", ">>=", "==", "!=", "<=", ">=", "&&", "||", "++", "--", "<<", ">>",
+        "+", "-", "*", "/", "%", "&", "|", "^", "~", "!", "<", ">", "=", "(", ")", "[", "]",
+        "{", "}", ",", ";", ":", "?"
+    ];
+
+    const SEPARATORS = new Set([',', ';']);
+    const DELIMITERS = new Set(['(', ')', '[', ']', '{', '}', ':', '.', '\\']);
+
+    // ----- tokenize function (supports C++ literals: integer, float, hex, octal, binary, char, string) -----
+    function tokenize(source) {
+        const tokens = [];
+        const errors = [];
+        let line = 1;
+        let pos = 0;
+        const N = source.length;
+
+        function addToken(lexeme, type, ln) {
+            tokens.push({ lexeme, type, line: ln });
+        }
+        function addError(lexeme, ln) {
+            errors.push({ lexeme, line: ln });
+            tokens.push({ lexeme, type: 'INVALID TOKEN', line: ln });
+        }
+
+        // ---- scan string (double or single) ----
+        function scanString(start, quote) {
+            let p = start + 1;
+            let bad = false;
+            while (p < N) {
+                const c = source[p];
+                if (c === '\\') { p += 2; continue; }
+                if (c === '\n') { bad = true; break; }
+                if (c === quote) { p++; return { text: source.slice(start, p), len: p - start, error: bad }; }
+                p++;
+            }
+            bad = true;
+            return { text: source.slice(start, p), len: p - start, error: bad };
+        }
+
+        // ---- scan number (int, float, hex, oct, bin) ----
+        function scanNumber(start) {
+            let p = start;
+            // hex
+            if (p + 2 < N && source[p] === '0' && (source[p+1] === 'x' || source[p+1] === 'X')) {
+                p += 2;
+                while (p < N && /[0-9a-fA-F]/.test(source[p])) p++;
+                return { text: source.slice(start, p), len: p - start };
+            }
+            // octal
+            if (p + 2 < N && source[p] === '0' && (source[p+1] === 'o' || source[p+1] === 'O')) {
+                p += 2;
+                while (p < N && source[p] >= '0' && source[p] <= '7') p++;
+                return { text: source.slice(start, p), len: p - start };
+            }
+            // binary
+            if (p + 2 < N && source[p] === '0' && (source[p+1] === 'b' || source[p+1] === 'B')) {
+                p += 2;
+                while (p < N && (source[p] === '0' || source[p] === '1')) p++;
+                return { text: source.slice(start, p), len: p - start };
+            }
+            // decimal
+            let hasDot = false, hasExp = false;
+            while (p < N) {
+                const c = source[p];
+                if (/\d/.test(c)) { p++; }
+                else if (c === '.' && !hasDot && !hasExp) { hasDot = true; p++; }
+                else if ((c === 'e' || c === 'E') && !hasExp && p > start) {
+                    hasExp = true; p++;
+                    if (p < N && (source[p] === '+' || source[p] === '-')) p++;
+                } else break;
+            }
+            return { text: source.slice(start, p), len: p - start };
+        }
+
+        while (pos < N) {
+            const ch = source[pos];
+
+            // newline
+            if (ch === '\n') { line++; pos++; continue; }
+            if (ch === ' ' || ch === '\t' || ch === '\r') { pos++; continue; }
+
+            // comment (// or /* ... */)
+            if (ch === '/') {
+                if (pos + 1 < N && source[pos+1] === '/') {
+                    let end = source.indexOf('\n', pos);
+                    if (end === -1) end = N;
+                    addToken(source.slice(pos, end), 'COMMENT', line);
+                    pos = end;
+                    continue;
+                } else if (pos + 1 < N && source[pos+1] === '*') {
+                    let end = source.indexOf('*/', pos+2);
+                    if (end === -1) {
+                        addError(source.slice(pos, pos+2), line);
+                        pos += 2;
+                    } else {
+                        const raw = source.slice(pos, end+2);
+                        const nl = (raw.match(/\n/g) || []).length;
+                        line += nl;
+                        addToken(raw, 'COMMENT', line);
+                        pos = end+2;
+                    }
+                    continue;
+                }
+            }
+
+            // string literals (double or single)
+            if (ch === '"' || ch === "'") {
+                const result = scanString(pos, ch);
+                if (result.error) addError(result.text, line);
+                else addToken(result.text, 'STRING LITERAL', line);
+                pos += result.len;
+                continue;
+            }
+
+            // character literal? (C++ char literals like 'a') – we treat as string for simplicity
+            // (handled above)
+
+            // numbers
+            if (/\d/.test(ch) || (ch === '.' && pos+1 < N && /\d/.test(source[pos+1]))) {
+                const result = scanNumber(pos);
+                let type = 'INTEGER';
+                if (/[.eE]/.test(result.text)) type = 'FLOAT';
+                else if (/^0[xX]/.test(result.text)) type = 'INTEGER';
+                else if (/^0[oO]/.test(result.text)) type = 'INTEGER';
+                else if (/^0[bB]/.test(result.text)) type = 'INTEGER';
+                addToken(result.text, type, line);
+                pos += result.len;
+                continue;
+            }
+
+            // identifiers / keywords
+            if (/[a-zA-Z_]/.test(ch)) {
+                let end = pos+1;
+                while (end < N && /[a-zA-Z0-9_]/.test(source[end])) end++;
+                const word = source.slice(pos, end);
+                addToken(word, KEYWORDS.has(word) ? 'KEYWORD' : 'IDENTIFIER', line);
+                pos = end;
+                continue;
+            }
+
+            // operators (longest match)
+            let opMatched = false;
+            for (const op of OPERATORS) {
+                if (source.startsWith(op, pos)) {
+                    addToken(op, 'OPERATOR', line);
+                    pos += op.length;
+                    opMatched = true;
+                    break;
+                }
+            }
+            if (opMatched) continue;
+
+            // separators
+            if (SEPARATORS.has(ch)) {
+                addToken(ch, 'SEPARATOR', line);
+                pos++;
+                continue;
+            }
+            // delimiters
+            if (DELIMITERS.has(ch)) {
+                addToken(ch, 'DELIMITER', line);
+                pos++;
+                continue;
+            }
+
+            // invalid
+            addError(ch, line);
+            pos++;
+        }
+
+        return { tokens, errors };
+    }
+
+    // =====================================================================
+    //  UI
+    // =====================================================================
+
+    const codeInput = document.getElementById('codeInput');
+    const tokenizeBtn = document.getElementById('tokenizeBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const tokenBody = document.getElementById('tokenBody');
+    const tokenCount = document.getElementById('tokenCount');
+    const errorCount = document.getElementById('errorCount');
+    const lineCount = document.getElementById('lineCount');
+    const errorContainer = document.getElementById('errorContainer');
+    const outputContainer = document.getElementById('outputContainer');
+    const statusText = document.getElementById('statusText');
+    const container = document.getElementById('app');
+
+    const DEFAULT_CODE = codeInput.value;
+
+    // ----- render table -----
+    function render(tokens, errors) {
+        // stats
+        tokenCount.textContent = tokens.length;
+        errorCount.textContent = errors.length;
+        const lines = codeInput.value.split('\n').length;
+        lineCount.textContent = lines;
+
+        // errors
+        errorContainer.innerHTML = '';
+        if (errors.length > 0) {
+            const div = document.createElement('div');
+            div.className = 'error-box';
+            div.innerHTML = `<strong>⚠️ ${errors.length} invalid token(s):</strong> ` +
+                errors.map(e => `Line ${e.line} → “${escapeHtml(e.lexeme)}”`).join('; ');
+            errorContainer.appendChild(div);
+        }
+
+        // table
+        if (tokens.length === 0) {
+            tokenBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#4a6a7a; padding:2rem;">⏳ No tokens – write code and press Tokenize</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        tokens.forEach((tok, idx) => {
+            const typeClass = (() => {
+                if (tok.type === 'INVALID TOKEN') return 'error';
+                if (tok.type === 'KEYWORD') return 'keyword';
+                if (tok.type === 'IDENTIFIER') return 'identifier';
+                if (tok.type === 'INTEGER') return 'integer';
+                if (tok.type === 'FLOAT') return 'float';
+                if (tok.type === 'STRING LITERAL') return 'string';
+                if (tok.type === 'COMMENT') return 'comment';
+                if (tok.type === 'OPERATOR') return 'operator';
+                if (tok.type === 'SEPARATOR' || tok.type === 'DELIMITER') return 'separator';
+                return '';
+            })();
+            html += `<tr>
+                <td>${idx+1}</td>
+                <td>${escapeHtml(tok.lexeme)}</td>
+                <td><span class="type-badge ${typeClass}">${tok.type}</span></td>
+                <td>${tok.line}</td>
+            </tr>`;
+        });
+        tokenBody.innerHTML = html;
+        // highlight output border
+        outputContainer.classList.add('active');
+        setTimeout(() => outputContainer.classList.remove('active'), 600);
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                  .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    // ----- run with animation -----
+    function runAnalyzer() {
+        // animation: scanning state
+        container.classList.add('scanning');
+        statusText.textContent = 'scanning...';
+        tokenizeBtn.disabled = true;
+
+        // simulate async (just for visual)
+        setTimeout(() => {
+            const source = codeInput.value;
+            const result = tokenize(source);
+            render(result.tokens, result.errors);
+            container.classList.remove('scanning');
+            statusText.textContent = 'ready';
+            tokenizeBtn.disabled = false;
+        }, 300); // small delay to show animation
+    }
+
+    // ----- event listeners -----
+    tokenizeBtn.addEventListener('click', runAnalyzer);
+
+    resetBtn.addEventListener('click', () => {
+        codeInput.value = DEFAULT_CODE;
+        runAnalyzer();
+    });
+
+    clearBtn.addEventListener('click', () => {
+        codeInput.value = '';
+        tokenBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#4a6a7a; padding:2rem;">⏳ No tokens – write code and press Tokenize</td></tr>`;
+        tokenCount.textContent = '0';
+        errorCount.textContent = '0';
+        lineCount.textContent = '0';
+        errorContainer.innerHTML = '';
+        statusText.textContent = 'cleared';
+        container.classList.remove('scanning');
+        tokenizeBtn.disabled = false;
+    });
+
+    // run on load
+    window.addEventListener('load', runAnalyzer);
+</script>
+</body>
+</html>
